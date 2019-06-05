@@ -1,4 +1,6 @@
 const modelTeacher = require("../model/teacher");
+const modelCourse = require("../model/course");
+const modelStudent = require("../model/student");
 
 exports.getAll = (req, res) => {
     let where = {'status':1}
@@ -32,7 +34,7 @@ exports.post = (req, res) => {
     usuario.name = req.body.name;
     usuario.lastname = req.body.lastname;
     if(usuario.name && usuario.lastname){
-        usuario['id'] = ++id;
+        usuario['id'] = modelTeacher.getId();
         if(typeof(req.body.phd) == 'boolean'){
         usuarios.phd = req.body.phd;
         }
@@ -72,8 +74,26 @@ exports.edit = (req, res) => {
                     res.status(403).send("Não foi possivel completar a atualização")
                 }
                 else{ 
-                    res.status(200).send("Professor cadastrado com sucesso")
-                }
+                    modelCourse.updateMany(
+                        { "teacher.id": usuarios.id }, 
+                        { $set: { "teacher.$": usuarios } }).then(results => {
+                          if(results){
+                            modelCourse.get({"teacher.id": id, status: 1}, {}).then(course_temo => {
+                              course_temo.forEach((e) => {
+                                modelStudent.replace(
+                                  {"status": 1, "course.id": e.id},
+                                  {$set: {"course": e}})
+                                })
+                              })
+                        
+                             res.send("Professor modificado com sucesso");
+                          }
+                          else{
+                            res.send('Erro na modificação');
+                          }
+                      })
+                    }
+
             })
             .catch(e => res.status(403).send("Não foi possivel completar a atualização"));
     }
@@ -86,11 +106,13 @@ exports.deleta = (req, res) => {
          if (results.value == null) {
              res.status(204).send("Não foi possivel encontrar o usuário")
          }else{
-             res.status(200).send("Professor removido do sistema");
+            modelCourse.updateMany({}, {$pull: {teacher: {"id": id}}});
+            modelStudent.updateMany({}, {$pull: {'course.teacher': {"id": id}}});
+            res.status.send("O professor foi removido com sucesso")
          }
      })
      .catch(e => {
-         console.error("Ocorreu um erro ao deletar os usuários da coleção");
+         console.error("Ocorreu um erro ao deletar os professores da coleção", e);
           res.status(500);
      })
 }

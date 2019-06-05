@@ -14,18 +14,38 @@ mongoClient.connect(mdbURL, {useNewUrlParser: true}, (err, database) => {
   }
 });
 
+exports.getId = () => {
+  return ++id;
+}
+
 exports.get = (where, collun) => {
     return db.collection('student').find(where, collun).toArray();
+}
+
+exports.updateStudent = (where, collun) => {
+  return db.collection('student').findOneAndUpdate(where, collun);
+}
+
+exports.get_without_array = (where, collun) =>  {
+  return db.collection('student').findOne(where, collun);
 }
 
 exports.updateCourse = (id) => {
     return db.collection('student').updateMany({}, {$pull: {course: {"id": id}}});
 }
 
-exports.insertCourse = (courses) => {
-    return db.collection('student').insertOne(courses);
+exports.insertStudent = (student) => {
+    return db.collection('student').insertOne(student);
 }
 
 exports.delete = (where, set) => {
     return db.collection('student').findOneAndUpdate(where, set); 
+}
+
+exports.replace = (where, set) => {
+  return db.collection("student").updateMany(where, set);
+}
+
+exports.updateMany = (where, collun) => {
+  return db.collection('student').updateMany(where, collun);
 }

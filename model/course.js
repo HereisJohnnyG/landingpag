@@ -18,6 +18,23 @@ exports.get = (where, collun) =>  {
     return db.collection('course').find(where, collun).toArray();
 }
 
+exports.get_without_array = (where, collun) =>  {
+  return db.collection('course').findOne(where, collun);
+}
+
+exports.insertCourse = (course) => {
+  return db.collection('course').insertOne(course);
+}
+
+
+exports.updateCourse = (ide, collun) => {
+  return db.collection('course').findOneAndUpdate({"id": ide}, {$set: collun});
+}
+
+exports.updateMany = (id, collun) => {
+  return db.collection('course').updateMany(id,collun);
+}
+
 exports.deleta = (id) => {
     return db.collection('course').findOneAndUpdate({"id": id, "status": 1}, {$set: {status: 0}});
 }
